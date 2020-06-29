@@ -4,15 +4,14 @@
 # @Email      : smnra@163.com
 # @File       : unzip.py
 # @Software   : PyCharm
-# @description: 本脚本的作用为
+# @description: 本脚本的作用为   通用解压缩模块
 
 
 
-import os
+import os,re
 import shutil
-import gzip
-from multiprocessing import Pool,current_process
-from multiprocessing import cpu_count
+import gzip,zipfile,tarfile,bz2,rarfile
+from multiprocessing import Pool,current_process,cpu_count
 
 try:
     import unzipConfig as unzipConf
@@ -23,49 +22,180 @@ except ModuleNotFoundError :
 
 
 
-def getZipPathList(zipDirPath, *filterStrList):
+def getZipPathList(zipDirPath, rgeStr):
     # 获取一个目录下 所有的满足filterStrList 条件的  文件的列表 包含子目录
     # 返回 文件列表
     # 基准目录
     zipDirPathAbs = os.path.abspath(zipDirPath)
     zipFileList = []    # 用于保存基准目录下符合过滤条件的 文件列表
-    zipDirList = []     # 用于保存基准目录下的 文件夹列表
 
-    def fixSubName(subStrList, Str):
-        for subStr in subStrList:
-            if subStr not in Str: return False
-        return True
+    def fixSubName(rgeStr, tagStr):
+        # 使用正则表达式匹配 字符串,匹配成功 返回True
+        tempFlag = re.search(rgeStr,tagStr)
+        if tempFlag :
+            return True
+        else:
+            return False
 
 
     # 获取基准目录下所有的路径 列表
-    _, zipFileList, zipDirList = os.walk(zipDirPathAbs)
+    for rootPath, dirList, fileList in os.walk(zipDirPathAbs):
+        for file in fileList :
+            if fixSubName(rgeStr, file) :
+                zipFileList.append(os.path.abspath(os.path.join(rootPath,file)))
 
-    return [os.path.abspath(zipfile) for zipfile in zipFileList if fixSubName(filterStrList, zipfile) ]
+    return list(zipFileList)
 
 
 def unzipFile(zipFile,unzipDir):
     zipfilePathAbs = os.path.abspath(zipFile)
     unzipDirPathAbs = os.path.abspath(unzipDir)
     # 分割 文件名
-    zipfileName = os.path.split(zipfilePathAbs)[-2]  # 此处需要一个文件名 不包含扩展名 坑能需要 修改*********************
+    zipfileName = os.path.split(zipfilePathAbs)[-1]
+    zipfileName, zipfileType = zipfileName.split('.',1) # 此处分为 压缩文件的文件名 和 压缩文件的扩展名
 
     # 解压出的xml的绝对路径
-    xmlFilePathAbs= os.path.join(unzipDirPathAbs + zipfileName)
+    xmlFileName= zipfileName + '.xml'
 
+
+    if zipfileType == 'xml.gz': unzipGz(zipfilePathAbs, unzipDirPathAbs, xmlFileName)
+    if zipfileType.lower() in ['tar.gz','tgz' ]:
+        unzipTgz(zipfilePathAbs, unzipDirPathAbs,'allInOne')
+    if zipfileType == 'zip': unzipZip(zipfilePathAbs, unzipDirPathAbs)
+    if 'rar' in zipfileType  : unzipRar(zipfilePathAbs, unzipDirPathAbs, 'allInOne')
+    if zipfileType == 'bz2': unzipBz2(zipfilePathAbs, unzipDirPathAbs, xmlFileName)
+
+
+
+
+
+
+def unzipRar(zipFilePath,tagDirPath,unzipType):
     try:
-        with gzip.open(zipfilePathAbs, 'rb') as f_in:
+        rarFile = rarfile.RarFile(zipFilePath)
+        if unzipType !='allInOne':
+
+            rarFile.extractall(tagDirPath)   # 按目录结构解压
+            return tagDirPath
+        else:
+            if rarFile:                      # 所有文件解压到同一个目录下
+                fileList = rarFile.infolist()
+                for file in fileList:
+                    if not file.isdir():
+                        rarFile.extract(file, path=tagDirPath)
+                        src = os.path.abspath(os.path.join(tagDirPath, file.filename))
+                        dst = os.path.abspath(os.path.join(tagDirPath, file.filename.split('/')[-1]))
+                        shutil.move(src, dst)
+                return
+            else:
+                print('文件不是tar文件')
+                return None
+    except Exception as e:
+        print(str(e))
+        return None
+    finally:
+        rarFile.close()
+
+"""
+解压报错:
+rarfile.RarCannotExec: Unrar not installed? (rarfile.UNRAR_TOOL='unrar')
+
+rar压缩包的算法并不对外公开，所以其它软件想压缩或解压rar文件，必须通过cmd调用rar.exe。
+所以，怀疑rarfile其实也是调用的rar.exe或unrar.exe
+解决方案：
+据winrar的目录中的unrar.exe，拷贝到我的python脚本目录下，再执行就ok了；
+或者环境变量path中加入unrar.exe所在目录；
+PyCharm的话，可以将unrar.exe复制到项目的venv/Scripts下。
+
+"""
+
+
+
+
+
+
+
+def unzipTgz(zipFilePath,tagDirPath,unzipType):
+    try:
+        tarFile = tarfile.open(zipFilePath)
+        if unzipType !='allInOne':
+            tarFile.extractall(tagDirPath)   # 按目录结构解压
+            return tagDirPath
+        else:
+            if tarFile:                      # 所有文件解压到同一个目录下
+                fileList = tarFile.getmembers()
+                for file in fileList:
+                    if file.isfile():
+                        tarFile.extract(file.name, path=tagDirPath)
+                        src = os.path.abspath(os.path.join(tagDirPath, file.name))
+                        dst = os.path.abspath(os.path.join(tagDirPath, file.name.split('/')[-1]))
+                        shutil.move(src, dst)
+                return
+            else:
+                print('文件不是tar文件')
+                return None
+    except Exception as e:
+        print(str(e))
+        return None
+    finally:
+        tarFile.close()
+
+
+def unzipZip(zipFilePath,tagDirPath):
+    # zipFilePath 为压缩包的绝对路径, tagDirPath 解压目录的绝对路径
+    try:
+        zipTempFile = zipfile.ZipFile(zipFilePath, 'r')
+        for f_in in zipTempFile.namelist():
+            zipTempFile.extract(f_in, tagDirPath)
+            print('解压缩：{}'.format(zipFilePath))
+        return tagDirPath + '\\' + f_in
+    except Exception as error:
+        print(str(zipFilePath) + ' ' + str(error))
+        return None
+    finally:
+        zipTempFile.close()
+
+
+
+
+
+def unzipGz(zipFilePath,tagDirPath,xmlFileName):
+    # zipFilePath 为压缩包的绝对路径, tagDirPath 解压目录的绝对路径,  xmlFileName 为解压后的文件名
+    xmlFilePathAbs = os.path.join(tagDirPath,xmlFileName)
+    try:
+        with gzip.open(zipFilePath, 'rb') as f_in:
             with open(xmlFilePathAbs, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
-                print('解压缩：{}'.format(zipfilePathAbs))
+                print('解压缩：{}'.format(zipFilePath))
                 return xmlFilePathAbs
     except Exception as error:
-        print(str(zipfilePathAbs) + ' ' + str(error))
+        print(str(zipFilePath) + ' ' + str(error))
         return ''
+
+
+
+
+def unzipBz2(zipFilePath,tagDirPath,xmlFileName):
+    # zipFilePath 为压缩包的绝对路径, tagDirPath 解压目录的绝对路径,  xmlFileName 为解压后的文件名
+    xmlFilePathAbs = os.path.join(tagDirPath,xmlFileName)
+    try:
+        with bz2.open(zipFilePath, 'rb') as f_in:
+            with open(xmlFilePathAbs, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+                print('解压缩：{}'.format(zipFilePath))
+                return xmlFilePathAbs
+    except Exception as error:
+        print(str(zipFilePath) + ' ' + str(error))
+        return ''
+
+
+
+
 
 
 if __name__ == '__main__':
     # 最大的进程数为  为 CPU的核心数.
-    po = Pool(cpu_count())
+    # po = Pool(cpu_count())
 
     # 创建文件夹
     unzipDirPath = os.path.abspath(unzipConf.xmlPath)
@@ -73,20 +203,20 @@ if __name__ == '__main__':
         os.makedirs(unzipDirPath)
 
     # 获取压缩文件列表
-    zipFileList = getZipPathList(unzipConf.zipPath, '.gz','MRS')
+    zipFileList = getZipPathList(unzipConf.zipPath, r'.+\.gz')
 
     def callback(x):
         print(' {}'.format(current_process().name, x))
 
     for zipFile in zipFileList:
         # 解压缩文件
-        # unzipFile(zipFile, unzipDirPath)
+        unzipFile(zipFile, unzipDirPath)
 
-        po.apply_async(unzipFile, args=(unzipDirPath,),
-                       callback=callback)
-
-    print("----start----")
-    po.close()  # 关闭进程池，关闭后po不再接受新的请求
-    po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
-    '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
-    print("-----end-----")
+    #     po.apply_async(unzipFile, args=(unzipDirPath,),
+    #                    callback=callback)
+    #
+    # print("----start----")
+    # po.close()  # 关闭进程池，关闭后po不再接受新的请求
+    # po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
+    # '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
+    # print("-----end-----")

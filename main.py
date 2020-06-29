@@ -6,9 +6,13 @@
 # @Software   : PyCharm
 # @description: 本脚本的作用为
 
+
+import os
 from multiprocessing import Pool,current_process
 from multiprocessing import cpu_count
 from ftp import ftp
+from unzip import unzip
+from unzip import unzipConfig as unzipConf
 
 
 
@@ -45,8 +49,34 @@ def ftpMrFileMP():
 
 
 
+def unzipMrFile():
+    # 最大的进程数为  为 CPU的核心数.
+    po = Pool(cpu_count())
 
+    # 创建文件夹
+    unzipDirPath = os.path.abspath(unzipConf.xmlPath)
+    if not os.path.exists(unzipDirPath):
+        os.makedirs(unzipDirPath)
 
+    # 获取压缩文件列表
+    zipFileList = unzip.getZipPathList(unzipConf.zipPath, r'_MRS_ZTE.+\.zip')
+
+    def callback(x):
+        print(' {}'.format(current_process().name, x))
+
+    for zipFile in zipFileList:
+        # 解压缩文件
+        # unzip.unzipFile(zipFile, unzipDirPath)
+
+        po.apply_async(unzip.unzipFile, args=(unzipDirPath,),
+                       callback=callback)
+
+    print("----start----")
+    po.close()  # 关闭进程池，关闭后po不再接受新的请求
+    po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
+    '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
+    print("-----end-----")
 
 if __name__ == '__main__':
-    ftpMrFileMP()
+    # ftpMrFileMP()
+    unzipMrFile()
