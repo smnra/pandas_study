@@ -59,7 +59,7 @@ def unzipMrFile():
         os.makedirs(unzipDirPath)
 
     # 获取压缩文件列表
-    zipFileList = unzip.getZipPathList(unzipConf.zipPath, r'_MRS_ZTE.+\.zip')
+    zipFileList = unzip.getZipPathList(unzipConf.zipPath, r'\.')
 
     def callback(x):
         print(' {}'.format(current_process().name, x))
@@ -67,9 +67,7 @@ def unzipMrFile():
     for zipFile in zipFileList:
         # 解压缩文件
         # unzip.unzipFile(zipFile, unzipDirPath)
-
-        po.apply_async(unzip.unzipFile, args=(unzipDirPath,),
-                       callback=callback)
+        po.apply_async(unzip.unzipFile, args=(zipFile, unzipDirPath), callback=callback)
 
     print("----start----")
     po.close()  # 关闭进程池，关闭后po不再接受新的请求
@@ -78,5 +76,9 @@ def unzipMrFile():
     print("-----end-----")
 
 if __name__ == '__main__':
-    # ftpMrFileMP()
+    # FTP下载MR文件
+    ftpMrFileMP()
+
+    # 解压缩MR压缩包
     unzipMrFile()
+

@@ -11,7 +11,11 @@
 import os,re
 import shutil
 import gzip,zipfile,tarfile,bz2,rarfile
-from multiprocessing import Pool,current_process,cpu_count
+
+from multiprocessing import Pool,current_process
+from multiprocessing import cpu_count
+
+
 
 try:
     import unzipConfig as unzipConf
@@ -48,6 +52,7 @@ def getZipPathList(zipDirPath, rgeStr):
 
 
 def unzipFile(zipFile,unzipDir):
+    print(zipFile)
     zipfilePathAbs = os.path.abspath(zipFile)
     unzipDirPathAbs = os.path.abspath(unzipDir)
     # 分割 文件名
@@ -57,11 +62,10 @@ def unzipFile(zipFile,unzipDir):
     # 解压出的xml的绝对路径
     xmlFileName= zipfileName + '.xml'
 
-
     if zipfileType == 'xml.gz': unzipGz(zipfilePathAbs, unzipDirPathAbs, xmlFileName)
     if zipfileType.lower() in ['tar.gz','tgz' ]:
         unzipTgz(zipfilePathAbs, unzipDirPathAbs,'allInOne')
-    if zipfileType == 'zip': unzipZip(zipfilePathAbs, unzipDirPathAbs)
+    if zipfileType == 'zip': unzipZip(zipfilePathAbs, unzipDirPathAbs,'allInOne')
     if 'rar' in zipfileType  : unzipRar(zipfilePathAbs, unzipDirPathAbs, 'allInOne')
     if zipfileType == 'bz2': unzipBz2(zipfilePathAbs, unzipDirPathAbs, xmlFileName)
 
@@ -141,19 +145,28 @@ def unzipTgz(zipFilePath,tagDirPath,unzipType):
         tarFile.close()
 
 
-def unzipZip(zipFilePath,tagDirPath):
+def unzipZip(zipFilePath,tagDirPath,unzipType):
     # zipFilePath 为压缩包的绝对路径, tagDirPath 解压目录的绝对路径
     try:
-        zipTempFile = zipfile.ZipFile(zipFilePath, 'r')
-        for f_in in zipTempFile.namelist():
-            zipTempFile.extract(f_in, tagDirPath)
-            print('解压缩：{}'.format(zipFilePath))
-        return tagDirPath + '\\' + f_in
+        zipFile = zipfile.ZipFile(zipFilePath, 'r')
+        if zipFile and unzipType !='allInOne':
+            zipFile.extractall(tagDirPath)   # 按目录结构解压
+            return tagDirPath
+
+        elif zipFile and unzipType == 'allInOne':   # 解压到同一目录下
+            for file in zipFile.infolist():
+                if not file.is_dir():
+                    zipFile.extract(file, tagDirPath)
+                    src = os.path.abspath(os.path.join(tagDirPath, file.filename))
+                    dst = os.path.abspath(os.path.join(tagDirPath, file.filename.split('/')[-1]))
+                    shutil.move(src, dst)
+            return tagDirPath
+
     except Exception as error:
-        print(str(zipFilePath) + ' ' + str(error))
+        print(str(zipFilePath) + ': ' + str(error))
         return None
     finally:
-        zipTempFile.close()
+        zipFile.close()
 
 
 
@@ -190,12 +203,17 @@ def unzipBz2(zipFilePath,tagDirPath,xmlFileName):
 
 
 
+def testMuP(arg1):
+    print(arg1)
+
+
+
 
 
 
 if __name__ == '__main__':
     # 最大的进程数为  为 CPU的核心数.
-    # po = Pool(cpu_count())
+    po = Pool(cpu_count())
 
     # 创建文件夹
     unzipDirPath = os.path.abspath(unzipConf.xmlPath)
@@ -203,20 +221,19 @@ if __name__ == '__main__':
         os.makedirs(unzipDirPath)
 
     # 获取压缩文件列表
-    zipFileList = getZipPathList(unzipConf.zipPath, r'.+\.gz')
+    zipFileList = getZipPathList(unzipConf.zipPath, r'.+\.')
 
     def callback(x):
         print(' {}'.format(current_process().name, x))
 
     for zipFile in zipFileList:
         # 解压缩文件
-        unzipFile(zipFile, unzipDirPath)
+        # unzipFile(zipFile, unzipDirPath)
 
-    #     po.apply_async(unzipFile, args=(unzipDirPath,),
-    #                    callback=callback)
-    #
-    # print("----start----")
-    # po.close()  # 关闭进程池，关闭后po不再接受新的请求
-    # po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
-    # '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
-    # print("-----end-----")
+        po.apply_async(unzipFile, args=(zipFile, unzipDirPath), callback=callback)
+
+    print("----start----")
+    po.close()  # 关闭进程池，关闭后po不再接受新的请求
+    po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
+    '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
+    print("-----end-----")
