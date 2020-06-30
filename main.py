@@ -10,11 +10,15 @@
 import os
 from multiprocessing import Pool,current_process
 from multiprocessing import cpu_count
+from getfile import getFileList
+
 from ftp import ftp
+
 from unzip import unzip
 from unzip import unzipConfig as unzipConf
 
-
+from parsexml import parseXmlMro, parseXmlMrs, parseXmlMre
+from parsexml import parseXmlConfig as xmlConf
 
 
 
@@ -49,7 +53,7 @@ def ftpMrFileMP():
 
 
 
-def unzipMrFile():
+def unzipMrFileMP():
     # 最大的进程数为  为 CPU的核心数.
     po = Pool(cpu_count())
 
@@ -59,7 +63,7 @@ def unzipMrFile():
         os.makedirs(unzipDirPath)
 
     # 获取压缩文件列表
-    zipFileList = unzip.getZipPathList(unzipConf.zipPath, r'\.')
+    zipFileList = getFileList(unzipConf.zipPath, r'\.')
 
     def callback(x):
         print(' {}'.format(current_process().name, x))
@@ -75,10 +79,71 @@ def unzipMrFile():
     '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
     print("-----end-----")
 
+
+def xmlToCsvMP():
+    # XML文件解析为csv文件
+    pass
+
+
+
+def parseMroToCsvMP():
+    # MRO  XML文件解析为csv文件
+    def callback(x):
+        print(' {}'.format(current_process().name,x))
+
+    # 最大的进程数为  为 CPU的核心数.
+    po = Pool(cpu_count())
+    print(u'CPU核心数为{},设置进程池最大进程数为:{}'.format(cpu_count(),cpu_count()))
+
+    # xml文件夹路径
+    xmlPath = xmlConf.xmlPath
+
+    # 保存csv文件夹路径
+    csvPath = xmlConf.csvPath
+
+    # 获取xml文件列表
+    xmlFileList= getFileList(xmlPath, r'.+_MRO_.+\.xml')
+
+    for xmlFile in xmlFileList:
+        # result = parseXmlMro.toCSV(xmlFile,csvPath)      # 解析xml,并保存为csv文件
+
+        # 多进程解析xml,并保存为csv文件
+        po.apply_async(parseXmlMro.toCSV, args=(xmlFile,csvPath), callback=callback)
+
+    print("----start----")
+    po.close()  # 关闭进程池，关闭后po不再接受新的请求
+    po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
+    '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
+    print("-----end-----")
+
+
+
+def csvToKpiMP():
+    # 将解析出的mdt数据 计算各种无线问题的KPI 和分析
+    # 如 弱覆盖率,重叠覆盖问题分析,PCI分析, mod3干扰分析, 覆盖方向分析等
+    pass
+
+
+def kpiToGeomMP():
+    # 使用 kpi 表 转化为地理对象  可以使用常见的 地理工具展示, 如mapinfo, qgis arcgis等.
+    pass
+
+
+
+
+
 if __name__ == '__main__':
     # FTP下载MR文件
-    ftpMrFileMP()
+    # ftpMrFileMP()
 
     # 解压缩MR压缩包
-    unzipMrFile()
+    unzipMrFileMP()
 
+    # XML文件解析为csv文件
+    parseMroToCsvMP()
+
+    # 将解析出的mdt数据 计算各种无线问题的KPI 和分析
+    # csvToKpiMP()
+    #
+    # # 使用 kpi 表 转化为地理对象
+    # kpiToGeomMP()

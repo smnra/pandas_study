@@ -15,6 +15,7 @@ import gzip,zipfile,tarfile,bz2,rarfile
 from multiprocessing import Pool,current_process
 from multiprocessing import cpu_count
 
+from getfile import getFileList
 
 
 try:
@@ -23,32 +24,6 @@ except ModuleNotFoundError :
     import unzip.unzipConfig as unzipConf
 
 
-
-
-
-def getZipPathList(zipDirPath, rgeStr):
-    # 获取一个目录下 所有的满足filterStrList 条件的  文件的列表 包含子目录
-    # 返回 文件列表
-    # 基准目录
-    zipDirPathAbs = os.path.abspath(zipDirPath)
-    zipFileList = []    # 用于保存基准目录下符合过滤条件的 文件列表
-
-    def fixSubName(rgeStr, tagStr):
-        # 使用正则表达式匹配 字符串,匹配成功 返回True
-        tempFlag = re.search(rgeStr,tagStr)
-        if tempFlag :
-            return True
-        else:
-            return False
-
-
-    # 获取基准目录下所有的路径 列表
-    for rootPath, dirList, fileList in os.walk(zipDirPathAbs):
-        for file in fileList :
-            if fixSubName(rgeStr, file) :
-                zipFileList.append(os.path.abspath(os.path.join(rootPath,file)))
-
-    return list(zipFileList)
 
 
 def unzipFile(zipFile,unzipDir):
@@ -221,7 +196,7 @@ if __name__ == '__main__':
         os.makedirs(unzipDirPath)
 
     # 获取压缩文件列表
-    zipFileList = getZipPathList(unzipConf.zipPath, r'.+\.')
+    zipFileList = getFileList(unzipConf.zipPath, r'.+\.')
 
     def callback(x):
         print(' {}'.format(current_process().name, x))
