@@ -90,7 +90,9 @@ def xmlToCsvMP():
 def parseMroToCsvMP():
     # 多进程消息回调函数
     def callback(x):
-        print(' {}'.format(current_process().name,x))
+        pid = current_process().pid
+        pname = current_process().name
+        print('{},{},{}'.format(pname,pid,x))
 
     # 最大的进程数为  为 CPU的核心数.
     po = Pool(cpu_count())
@@ -106,7 +108,7 @@ def parseMroToCsvMP():
     xmlFileListMro= getFileList(xmlPath, r'.+_MRO_.+\.xml')
 
     for xmlFileMro in xmlFileListMro:
-        # result = toCSV(xmlFile,csvPath)      # 解析xml,并保存为csv文件
+        # result = parseXmlMro.toCSV(xmlFile,csvPath)      # 解析xml,并保存为csv文件
 
         # 多进程解析xml,并保存为csv文件
         po.apply_async(parseXmlMro.toCSV, args=(xmlFileMro,csvPathMro), callback=callback)
@@ -116,6 +118,71 @@ def parseMroToCsvMP():
     po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
     '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
     print("-----end-----")
+
+
+def parseMrsToCsvMP():
+    # 多进程消息回调函数
+    def callback(x):
+        pid = current_process().pid
+        pname = current_process().name
+        print('{},{},{}'.format(pname,pid,x))
+
+    # 最大的进程数为  为 CPU的核心数.
+    po = Pool(cpu_count())
+    print(u'CPU核心数为{},设置进程池最大进程数为:{}'.format(cpu_count(),cpu_count()))
+
+    # 从配置文件导入xml文件夹路径
+    xmlPath = xmlConf.xmlPath
+
+    # 从配置文件导入 保存csv文件夹路径
+    csvPathMrs = xmlConf.csvPathMrs
+
+    xmlFileListMrs = getFileList(xmlPath,r'.+_MRS_.+\.xml')
+
+    for xmlFileMrs in xmlFileListMrs:
+        '''每次循环将会用空闲出来的子进程去调用目标'''
+        # parseXmlMrs.toCSV(xmlFileMrs, csvPathMrs)
+
+        po.apply_async(parseXmlMrs.toCSV, args=(xmlFileMrs,csvPathMrs), callback=callback)
+
+    print("----start----")
+    po.close()  # 关闭进程池，关闭后po不再接受新的请求
+    po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
+    '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
+    print("-----end-----")
+
+
+def parseMreToCsvMP():
+    # 多进程消息回调函数
+    def callback(x):
+        pid = current_process().pid
+        pname = current_process().name
+        print('{},{},{}'.format(pname,pid,x))
+
+    # 最大的进程数为  为 CPU的核心数.
+    po = Pool(cpu_count())
+    print(u'CPU核心数为{},设置进程池最大进程数为:{}'.format(cpu_count(),cpu_count()))
+
+    # 从配置文件导入xml文件夹路径
+    xmlPath = xmlConf.xmlPath
+
+    # 从配置文件导入 保存csv文件夹路径
+    csvPathMre = xmlConf.csvPathMre
+
+    xmlFileListMre = getFileList(xmlPath,r'.+_MRE_.+\.xml')
+
+    for xmlFileMre in xmlFileListMre:
+        '''每次循环将会用空闲出来的子进程去调用目标'''
+        # parseXmlMre.toCSV(xmlFileMre,csvPathMre)
+        po.apply_async(parseXmlMre.toCSV, args=(xmlFileMre,csvPathMre), callback=callback)
+
+    print("----start----")
+    po.close()  # 关闭进程池，关闭后po不再接受新的请求
+    po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
+    '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
+    print("-----end-----")
+
+
 
 
 
@@ -139,10 +206,16 @@ if __name__ == '__main__':
     # ftpMrFileMP()
 
     # 解压缩MR压缩包
-    unzipMrFileMP()
+    # unzipMrFileMP()
 
-    # XML文件解析为csv文件
+    # MRO XML文件解析为csv文件
     parseMroToCsvMP()
+
+    # MRS XML文件解析为csv文件
+    parseMrsToCsvMP()
+
+    # MRE XML文件解析为csv文件
+    parseMreToCsvMP()
 
     # 将解析出的mdt数据 计算各种无线问题的KPI 和分析
     # csvToKpiMP()

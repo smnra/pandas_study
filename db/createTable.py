@@ -9,21 +9,30 @@
 
 
 import os
+import psycopg2 as postgres
 import xml.etree.cElementTree as ET
-from dBConnect import *
+from getfile import getFileList
+
+try:
+    import dBConnect as dBConnect
+except ModuleNotFoundError :
+    import db.dBConnect as dBConnect
+
+
+try:
+    import dbConfig as dbConfig
+except ModuleNotFoundError :
+    import db.dbConfig as dbConfig
+
+
+
 
 
 
 def readXML(xmlFileName):
     # 读取xml文件, 并解析内容到列表
     titleList = []
-        #
-        # {'mr': '',
-        #      'title': []
-        #      }
-    mr = {'mr': '',
-         'title': []
-         }
+
     if os.path.exists(xmlFileName):
         tree = ET.parse(xmlFileName)
         root = tree.getroot()
@@ -52,23 +61,62 @@ def readXML(xmlFileName):
 
 
 
-def createTable(titleList,db,cursor):
+def createTable(titleList, curs,dbType):
     # 拼接 建表语句, 并执行建表语句.
     for title in titleList:
-        createTableStr = "create table " + \
-                         title['mr'] + \
-                         "_15MI (enb_id varchar2(32), startTime varchar2(32), endTime varchar2(32), reportTime varchar2(32), period NUMBER, eci varchar2(32), " + \
-                         " NUMBER, ".join(title['title']) + \
-                         " NUMBER );"
-        # print(title)
-        print(createTableStr)
-        # selectOracle(cursor, createTableStr)
 
+        if dbType.lower()=='postgres':
+            createTableStr = "create table if not exists " + title['mr'] + \
+                         "_15MI (enb_id varchar(32), startTime varchar(32), endTime varchar(32), reportTime varchar(32), period integer, eci varchar(32), " + \
+                         " integer, ".join(title['title']) + \
+                         " integer );"
+
+        elif dbType.lower() == 'oracle':
+            createTableStr = "create table if not exists " + title['mr'] + \
+                             "_15MI (enb_id varchar2(32), startTime varchar2(32), endTime varchar2(32), reportTime varchar2(32), period NUMBER, eci varchar2(32), " + \
+                             " NUMBER, ".join(title['title']) + \
+                             " NUMBER );"
+
+        # 执行建表语句
+        try:
+            curs.execute(createTableStr)
+            curs.execute('commit;')
+        except Exception as e:
+            print(str(e))
+
+        print(createTableStr)
 
 
 
 if __name__ == "__main__":
-    titleList = readXML('./xml/FDD-LTE_MRS_NSN_OMC_767223_20191206024500.xml')
-    db, cursor = connectOracle('c##fast','fast*123','10.231.142.8','fast','1521')
-    createTable(titleList, db, cursor)
-    close(db, cursor)
+    try:
+        # 初始化数据库连接
+        conn, curs = dBConnect.connDb(dbConfig.usedDbType)
+
+
+        #获取MRS样本文件
+        xmlFile = getFileList(dbConfig.xmlPath, r'.+_MRS_.+\.xml')[0]
+
+        if curs:
+            # 创建MRS的表 和 MRE的表
+            dBConnect.changeDb(curs, dbConfig.MRO_15MI_Str_pg)
+            dBConnect.changeDb(curs, dbConfig.MRO_RIP_15MI_Str_pg)
+            dBConnect.changeDb(curs, dbConfig.MRE_15MI_Str_pg)
+            curs.execute('commit;')
+
+            # 获取 表头结构, 列名信息
+            titleList = readXML(xmlFile)
+            # 创建MRS的表
+            createTable(titleList, curs, dbConfig.usedDbType)
+
+
+
+    except Exception as e:
+        print(e)
+
+    finally:
+        if conn: dBConnect.close(conn,curs)
+
+
+
+

@@ -9,57 +9,45 @@
 
 
 import cx_Oracle as oracle
+import psycopg2 as postgres
 
-def connectOracle(userName,passWord,dataBaseIp,serviceName,dataBasePort='1521'):
-    connectStatement = ""
-    if userName:
-        connectStatement = userName + "/"
-    else:
-        print("userName is Null!")
-        return "userName is Null!"
-    if passWord:
-        connectStatement += passWord + "@"
-    if dataBaseIp:
-        connectStatement += dataBaseIp
-    else:
-        print("dataBaseIp is Null!")
-        return "dataBaseIp is Null!"
-    if dataBasePort:
-        connectStatement += ":" + dataBasePort + "/"
-    if serviceName:
-        connectStatement += serviceName
-    else:
-        print("serviceNameis Null!")
-        return "serviceNameis Null!"
+try:
+    import dbConfig as dbConfig
+except ModuleNotFoundError :
+    import db.dbConfig as dbConfig
+
+
+def connDb(dbType):
+    # 连接配置文件指定的数据库,返回 conn 和 curs
+    # dbType 的 值为'oracle' 或 'postgres'
+    # 根据传入的数据库类型名称返回相应的数据库连接对象
     try:
-        db = oracle.connect(connectStatement)
+        if dbType=='oracle':
+            conn = oracle.connect('{}/{}@{}:{}/{}'.
+                format(dbConfig.oracleServer['user'],
+                       dbConfig.oracleServer['password'],
+                       dbConfig.oracleServer['ip'],
+                       dbConfig.oracleServer['port'],
+                       dbConfig.oracleServer['servername'] ))
+
+            curs = conn.cursor()
+            return conn,curs
+
+        elif  dbType=='postgres':
+            conn = postgres.connect(
+                database=dbConfig.postgresServer['dbname'],
+                user=dbConfig.postgresServer['user'],
+                password=dbConfig.postgresServer['password'],
+                host=dbConfig.postgresServer['host'],
+                port=dbConfig.postgresServer['port'] )
+            curs = conn.cursor()
+            return conn,curs
+
     except Exception as e:
         print(e)
-        return e
-    cursor = db.cursor()
-    return (db,cursor)
+        return False, False
 
-
-def selectOracle(cursor,sql):
-    try:
-        cursor.execute(sql)
-        return  cursor.fetchmany(8)
-    except Exception as e:
-        print(e)
-        return e
-
-def sqlOracle(cursor,sql):
-    try:
-        cursor.execute(sql)
-        return 1
-    except Exception as e:
-        print(e)
-        return e
-
-
-
-
-def updateOrInsertOracle(cursor,sql):
+def changeDb(cursor,sql):
     try:
         cursor.execute(sql)
         cursor.execute("commit")
@@ -69,14 +57,13 @@ def updateOrInsertOracle(cursor,sql):
         return 0
 
 
-def close(db,cursor):
-    cursor.execute("commit")
-    cursor.close()
-    db.close()
+def close(conn,curs):
+    curs.execute("commit")
+    curs.close()
+    conn.close()
 
 
 if __name__=='__main__':
-    db, cursor = connectOracle('c##fast','fast*123','10.231.142.8','fast','1521')
-    many_data = selectOracle(cursor, 'select *  from c_lte_custom')
-    print(many_data)
-    close(db, cursor)
+    conn, curs = connDb('postgres')
+    changeDb(curs, 'select *  from c_lte_custom')
+    close(conn,curs)
