@@ -31,7 +31,6 @@ def getFileList(DirPath, rgeStr):
 
     return list(resultFileList)
 
-
 if __name__=='__main__':
     fileList = getFileList('./mr_data/', r'.+_MRO_.+\.gz')
     print(fileList)

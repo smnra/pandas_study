@@ -207,16 +207,16 @@ if __name__ =="__main__":
     xmlPath = xmlConf.xmlPath
 
     # 保存csv文件夹路径
-    csvPath = xmlConf.csvPath
+    csvPathMro = xmlConf.csvPathMro
 
     # 获取xml文件列表
-    xmlFileList= getFileList(xmlPath, r'.+_MRO_.+\.xml')
+    xmlFileListMro= getFileList(xmlPath, r'.+_MRO_.+\.xml')
 
-    for xmlFile in xmlFileList:
+    for xmlFileMro in xmlFileListMro:
         # result = toCSV(xmlFile,csvPath)      # 解析xml,并保存为csv文件
 
         # 多进程解析xml,并保存为csv文件
-        po.apply_async(toCSV, args=(xmlFile,csvPath), callback=callback)
+        po.apply_async(toCSV, args=(xmlFileMro,csvPathMro), callback=callback)
 
     print("----start----")
     po.close()  # 关闭进程池，关闭后po不再接受新的请求

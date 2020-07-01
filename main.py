@@ -10,6 +10,7 @@
 import os
 from multiprocessing import Pool,current_process
 from multiprocessing import cpu_count
+
 from getfile import getFileList
 
 from ftp import ftp
@@ -87,7 +88,7 @@ def xmlToCsvMP():
 
 
 def parseMroToCsvMP():
-    # MRO  XML文件解析为csv文件
+    # 多进程消息回调函数
     def callback(x):
         print(' {}'.format(current_process().name,x))
 
@@ -99,22 +100,23 @@ def parseMroToCsvMP():
     xmlPath = xmlConf.xmlPath
 
     # 保存csv文件夹路径
-    csvPath = xmlConf.csvPath
+    csvPathMro = xmlConf.csvPathMro
 
     # 获取xml文件列表
-    xmlFileList= getFileList(xmlPath, r'.+_MRO_.+\.xml')
+    xmlFileListMro= getFileList(xmlPath, r'.+_MRO_.+\.xml')
 
-    for xmlFile in xmlFileList:
-        # result = parseXmlMro.toCSV(xmlFile,csvPath)      # 解析xml,并保存为csv文件
+    for xmlFileMro in xmlFileListMro:
+        # result = toCSV(xmlFile,csvPath)      # 解析xml,并保存为csv文件
 
         # 多进程解析xml,并保存为csv文件
-        po.apply_async(parseXmlMro.toCSV, args=(xmlFile,csvPath), callback=callback)
+        po.apply_async(parseXmlMro.toCSV, args=(xmlFileMro,csvPathMro), callback=callback)
 
     print("----start----")
     po.close()  # 关闭进程池，关闭后po不再接受新的请求
     po.join()  # 等待po中的所有子进程执行完成，必须放在close语句之后
     '''如果没有添加join()，会导致有的代码没有运行就已经结束了'''
     print("-----end-----")
+
 
 
 

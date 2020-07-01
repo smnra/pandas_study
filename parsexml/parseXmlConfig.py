@@ -14,7 +14,9 @@ import os
 xmlPath = os.path.abspath('.\\mr_data\\xml\\')
 
 # csv文件保存目录
-csvPath = os.path.abspath('.\\mr_data\\csv\\')
+csvPathMro = os.path.abspath('.\\mr_data\\csv\\mro\\')
+csvPathMrs = os.path.abspath('.\\mr_data\\csv\\mrs\\')
+csvPathMre = os.path.abspath('.\\mr_data\\csv\\mre\\')
 
 # 需要解压的MR文件类型
 
