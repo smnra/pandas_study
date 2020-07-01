@@ -11,7 +11,7 @@
 
 
 
-import os
+import os,time
 import xml.etree.cElementTree as ET
 from multiprocessing import Pool,current_process
 from multiprocessing import cpu_count
@@ -102,17 +102,12 @@ def removeEndSpace(str,chr):
         return str
 
 
-
-
-
-
-
-
-
 def toCSV(xmlFile, csvPath):
     pid = current_process().pid
     pname = current_process().name
-    print(' {},{},'.format(pname, pid))
+    print('{},{},'.format(pname, pid))
+
+    start = time.time()
 
     if not os.path.isdir(csvPath):
         os.makedirs(csvPath)
@@ -147,7 +142,7 @@ if __name__ == '__main__':
     def callback(x):
         pid = current_process().pid
         pname = current_process().name
-        print(' {},{},{}'.format(pname,pid,x))
+        print('{},{},{}'.format(pname,pid,x))
 
     # 最大的进程数为  为 CPU的核心数.
     po = Pool(cpu_count())

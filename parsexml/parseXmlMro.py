@@ -136,13 +136,18 @@ def removeEndSpace(str,chr):
 
 
 def toCSV(xmlFile,csvPath):
+    pid = current_process().pid
+    pname = current_process().name
+    print('{},{},'.format(pname, pid))
+
     start = time.time()
 
     valueCount = 0
     # 插入数据条数的计数器  超过500条 commit
 
     # 创建文件夹
-    if not os.path.isdir(csvPath):os.makedirs(csvPath)
+    if not os.path.isdir(csvPath):
+        os.makedirs(csvPath)
 
 
     if os.path.isfile(xmlFile):
@@ -197,7 +202,9 @@ def toCSV(xmlFile,csvPath):
 if __name__ =="__main__":
     # 多进程消息回调函数
     def callback(x):
-        print(' {}'.format(current_process().name,x))
+        pid = current_process().pid
+        pname = current_process().name
+        print('{},{},{}'.format(pname,pid,x))
 
     # 最大的进程数为  为 CPU的核心数.
     po = Pool(cpu_count())
