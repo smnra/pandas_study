@@ -16,7 +16,7 @@ from getfile import getFileList
 try:
     import dBConnect as dBConnect
 except ModuleNotFoundError :
-    import db.dBConnect as dBConnect
+    import db.dbConnect as dBConnect
 
 
 try:
@@ -88,11 +88,10 @@ def createTable(titleList, curs,dbType):
 
 
 
-if __name__ == "__main__":
+def main():
     try:
         # 初始化数据库连接
         conn, curs = dBConnect.connDb(dbConfig.usedDbType)
-
 
         #获取MRS样本文件
         xmlFile = getFileList(dbConfig.xmlPath, r'.+_MRS_.+\.xml')[0]

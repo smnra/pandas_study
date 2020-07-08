@@ -17,6 +17,8 @@ xmlPath = os.path.abspath('.\\mr_data\\xml\\')
 
 
 # csv文件保存目录
+csvPath = os.path.abspath('.\\mr_data\\csv\\')
+
 csvPathMro = os.path.abspath('.\\mr_data\\csv\\mro\\')
 csvPathMrs = os.path.abspath('.\\mr_data\\csv\\mrs\\')
 csvPathMre = os.path.abspath('.\\mr_data\\csv\\mre\\')
@@ -164,7 +166,7 @@ create table if not exists MRO_15MI
 	reportTime VARCHAR(32),
 	period integer,
 	eci VARCHAR(32),
-	MmeUeS1apId  integer,
+	MmeUeS1apId  bigint,
 	MmeGroupId integer,
 	MmeCode integer,
 	TimeStamp2 VARCHAR(32),
@@ -222,7 +224,7 @@ create table if not exists MRO_RIP_15MI
 	reportTime VARCHAR(32),
 	period integer,
 	eci VARCHAR(32),
-	MmeUeS1apId  integer,
+	MmeUeS1apId  bigint,
 	MmeGroupId integer,
 	MmeCode integer,
 	TimeStamp2 VARCHAR(32),
@@ -241,7 +243,7 @@ create table if not exists MRE_15MI
 	reportTime VARCHAR(32),
 	period integer,
 	eci VARCHAR(32),
-	MmeUeS1apId  integer,
+	MmeUeS1apId  bigint,
 	MmeGroupId integer,
 	MmeCode integer,
 	TimeStamp2 VARCHAR(32),
