@@ -206,7 +206,7 @@ if __name__ == '__main__':
     # ftpMrFileMP()
 
     # 解压缩MR压缩包
-    # unzipMrFileMP()
+    unzipMrFileMP()
 
     # MRO XML文件解析为csv文件
     parseMroToCsvMP()

@@ -2,7 +2,7 @@
 # @Time       : 2019/12/13 15:22
 # @Author     : SMnRa
 # @Email      : smnra@163.com
-# @File       : dBConnect.py
+# @File       : dbConnect.py
 # @Software   : PyCharm
 # @description: 本脚本的作用为 创建数据库连接
 
@@ -47,15 +47,34 @@ def connDb(dbType):
         print(e)
         return False, False
 
-def changeDb(cursor,sql):
+def execSql(cursor,sql):
     try:
         cursor.execute(sql)
-        cursor.execute("commit")
+        cursor.execute("commit;")
         return 1
     except Exception as e:
         print(e)
         return 0
 
+
+def isTableExist(conn, curs,tableName,dbType):
+    # 判断数据库里是否存在表
+    try:
+        if dbType=='postgres':
+            sql = "SELECT tablename FROM pg_tables where tablename = '{}';".format(tableName)
+        elif dbType=='oracle':
+            sql = "select table_name from user_tables  where table_name='{}'".format(tableName)
+        else:
+            return False
+        print(sql)
+        curs.execute("{}".format(sql))
+        result = curs.fetchone()
+        if tableName in result:
+            return True
+    except Exception as e:
+        print(str(e))
+
+    return False
 
 def close(conn,curs):
     curs.execute("commit")

@@ -166,7 +166,7 @@ create table if not exists MRO_15MI
 	reportTime VARCHAR(32),
 	period integer,
 	eci VARCHAR(32),
-	MmeUeS1apId  bigint,
+	MmeUeS1apId  VARCHAR(32),
 	MmeGroupId integer,
 	MmeCode integer,
 	TimeStamp2 VARCHAR(32),
@@ -198,7 +198,7 @@ create table if not exists MRO_15MI
 	MR_LteScSinrUL integer,
 	MR_LteScEarfcn integer, 
 	MR_LteScPci integer,
-	MR_LteSccgi integer,
+	MR_LteSccgi VARCHAR(32),
 	MR_LteNcEarfcn integer,
 	MR_LteNcPci integer, 
 	MR_GsmNcellBcch integer, 
@@ -208,8 +208,8 @@ create table if not exists MRO_15MI
 	MR_UtraCpichRSCP integer, 
 	MR_UtraCpichEcNo integer, 
 	MR_UtraCellParameterId integer, 
-	MR_Longitude integer, 
-	MR_Latitude integer
+	MR_Longitude numeric, 
+	MR_Latitude numeric
 );
 
 """
@@ -224,7 +224,7 @@ create table if not exists MRO_RIP_15MI
 	reportTime VARCHAR(32),
 	period integer,
 	eci VARCHAR(32),
-	MmeUeS1apId  bigint,
+	MmeUeS1apId  VARCHAR(32),
 	MmeGroupId integer,
 	MmeCode integer,
 	TimeStamp2 VARCHAR(32),
@@ -243,7 +243,7 @@ create table if not exists MRE_15MI
 	reportTime VARCHAR(32),
 	period integer,
 	eci VARCHAR(32),
-	MmeUeS1apId  bigint,
+	MmeUeS1apId  VARCHAR(32),
 	MmeGroupId integer,
 	MmeCode integer,
 	TimeStamp2 VARCHAR(32),
@@ -252,7 +252,7 @@ create table if not exists MRE_15MI
 	MR_LteScRSRQ  integer,
 	MR_LteScEarfcn  integer,
 	MR_LteScPci  integer,
-	MR_LteScCgi    VARCHAR(32),
+	MR_LteScCgi  VARCHAR(32),
 	MR_LteNcRSRP  integer,
 	MR_LteNcRSRQ  integer,
 	MR_LteNcEarfcn integer,
