@@ -15,6 +15,9 @@ import os
 # xml文件所在目录
 xmlPath = os.path.abspath('.\\mr_data\\xml\\')
 
+# sql文件所在目录
+sqlPath = os.path.abspath('.\\mr_data\\sql\\')
+
 
 # csv文件保存目录
 csvPath = os.path.abspath('.\\mr_data\\csv\\')

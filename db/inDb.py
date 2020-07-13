@@ -138,8 +138,7 @@ if __name__ == '__main__':
 
             # 检测表是否存在.
             isExistTable = dbConnect.isTableExist(conn, curs,tableName,dbConfig.usedDbType)
-            if not isExistTable:
-                createTable.main()   # 不存在就执行创建表的脚本
+            # if not isExistTable: createTable.main()   # 不存在就执行创建表的脚本
 
             inDb(conn, curs, csvFile, tableName,dbConfig.usedDbType)
 

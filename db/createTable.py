@@ -97,10 +97,10 @@ def main():
         xmlFile = getFileList(dbConfig.xmlPath, r'.+_MRS_.+\.xml')[0]
 
         if curs:
-            # 创建MRS的表 和 MRE的表
-            dBConnect.changeDb(curs, dbConfig.MRO_15MI_Str_pg)
-            dBConnect.changeDb(curs, dbConfig.MRO_RIP_15MI_Str_pg)
-            dBConnect.changeDb(curs, dbConfig.MRE_15MI_Str_pg)
+            # 创建MRo的表 和 MRE的表
+            dBConnect.execSql(curs, dbConfig.MRO_15MI_Str_pg)
+            dBConnect.execSql(curs, dbConfig.MRO_RIP_15MI_Str_pg)
+            dBConnect.execSql(curs, dbConfig.MRE_15MI_Str_pg)
             curs.execute('commit;')
 
             # 获取 表头结构, 列名信息
@@ -116,6 +116,5 @@ def main():
     finally:
         if conn: dBConnect.close(conn,curs)
 
-
-
-
+if __name__=='__main__':
+    main()

@@ -84,5 +84,5 @@ def close(conn,curs):
 
 if __name__=='__main__':
     conn, curs = connDb('postgres')
-    changeDb(curs, 'select *  from c_lte_custom')
+    execSql(curs, 'select *  from c_lte_custom')
     close(conn,curs)

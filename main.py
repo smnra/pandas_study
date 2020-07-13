@@ -21,6 +21,8 @@ from unzip import unzipConfig as unzipConf
 from parsexml import parseXmlMro, parseXmlMrs, parseXmlMre
 from parsexml import parseXmlConfig as xmlConf
 
+from db import createTable, dbConnect, inDb
+from db import dbConfig as dbConf
 
 
 
@@ -183,8 +185,28 @@ def parseMreToCsvMP():
     print("-----end-----")
 
 
+def csvInDb():
+    try:
+        # 初始化数据库连接
+        conn, curs = dbConnect.connDb(dbConf.usedDbType)
 
+        # 获取csv文件列表
+        csvFileList = getFileList(dbConf.csvPath, r'.+\.csv')
+        for csvFile in csvFileList:
+            tableName, fileExtName = os.path.splitext(os.path.split(csvFile)[-1])
+            tableName = tableName.lower()
 
+            # 检测表是否存在.
+            isExistTable = dbConnect.isTableExist(conn, curs, tableName, dbConf.usedDbType)
+            # if not isExistTable: createTable.main()   # 不存在就执行创建表的脚本
+
+            inDb(conn, curs, csvFile, tableName, dbConf.usedDbType)
+
+    except Exception as e:
+        print(str(e))
+
+    finally:
+        if conn: dbConnect.close(conn,curs)
 
 
 def csvToKpiMP():
@@ -216,6 +238,9 @@ if __name__ == '__main__':
 
     # MRE XML文件解析为csv文件
     parseMreToCsvMP()
+
+    # csv文件入库
+    csvInDb()
 
     # 将解析出的mdt数据 计算各种无线问题的KPI 和分析
     # csvToKpiMP()
