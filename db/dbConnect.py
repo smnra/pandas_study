@@ -10,6 +10,7 @@
 
 import cx_Oracle as oracle
 import psycopg2 as postgres
+import time
 
 try:
     import dbConfig as dbConfig
@@ -30,9 +31,6 @@ def connDb(dbType):
                        dbConfig.oracleServer['port'],
                        dbConfig.oracleServer['servername'] ))
 
-            curs = conn.cursor()
-            return conn,curs
-
         elif  dbType=='postgres':
             conn = postgres.connect(
                 database=dbConfig.postgresServer['dbname'],
@@ -40,12 +38,21 @@ def connDb(dbType):
                 password=dbConfig.postgresServer['password'],
                 host=dbConfig.postgresServer['host'],
                 port=dbConfig.postgresServer['port'] )
+
+        if conn :
+            print(u"数据库连接成功.")
             curs = conn.cursor()
             return conn,curs
+        else:
+            print(u"连接失败,6秒后重试...")
+            time.sleep(6)
+            return connDb(dbType)
 
     except Exception as e:
         print(e)
-        return False, False
+        print(u"连接失败,6秒后重试...")
+        time.sleep(6)
+        return connDb(dbType)
 
 def execSql(cursor,sql):
     try:
@@ -77,9 +84,12 @@ def isTableExist(conn, curs,tableName,dbType):
     return False
 
 def close(conn,curs):
-    curs.execute("commit")
-    curs.close()
-    conn.close()
+    try:
+        curs.execute("commit")
+        curs.close()
+        conn.close()
+    except Exception as e:
+        print(str(e))
 
 
 if __name__=='__main__':

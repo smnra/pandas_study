@@ -6,7 +6,7 @@
 # @Software   : PyCharm
 # @description: 本脚本的作用为 入库 MRS数据 到oracle中    psycopg2 copy_from
 
-import os
+import os,time
 import numpy as np
 import pandas as pd
 from io import StringIO
@@ -35,8 +35,27 @@ except ModuleNotFoundError :
 
 
 
+def insert_date(conn, curs,tableName, dbType, data):
+    try:
+        if dbType == 'postgres':
+            if not curs:
+                conn, curs = dbConnect.connDb(dbConfig.usedDbType)
 
+            # postgresql 大量数据入库 使用强大的copy_from()，是postgresSQ的内置函数
+            curs.copy_from(data, tableName, sep='\t', null='NULL')
+            curs.execute("commit;")
+            return True
+        elif dbType == 'oracle':
+            # 如果是oracle 数据库 使用 SqLoader 入库
+            # createOraclCtl()
+            pass
+    except Exception as e:
+        print(str(e))
+        time.sleep(6000)
+        insert_date(conn, curs, dbType, data)
 
+    curs.execute("rollback;")
+    return False
 def inDb(conn,curs,csvFile,tableName,dbType):
     print(tableName , csvFile)
 
@@ -55,7 +74,7 @@ def inDb(conn,curs,csvFile,tableName,dbType):
             # usecols=['CITY', 'SDATE', 'GRIDX', 'GRIDY', 'S_RSRP', 'MROID'],
 
             # 每次读取固定的行数(chunksize=6), 返回一个可迭代的文件读取对象
-            chunksize=20000,
+            chunksize=10000,
 
             iterator=True,
 
@@ -98,6 +117,7 @@ def inDb(conn,curs,csvFile,tableName,dbType):
             )
 
         for subDf in fileReader:
+            print("当前行: " + str(fileReader._currow))
             # 删除无效数据
             subDf.drop(subDf[subDf[4] != '15'].index, inplace=True)
             # 删除第四列不为'15' 的行
@@ -109,14 +129,9 @@ def inDb(conn,curs,csvFile,tableName,dbType):
             subDf.to_csv(output, sep='\t', index=False, header=False)
             output1 = output.getvalue()
 
-            if dbType=='postgres':
-                # postgresql 大量数据入库 使用强大的copy_from()，是postgresSQ的内置函数
-                curs.copy_from(StringIO(output1), tableName, sep='\t', null='NULL')
-                curs.execute("commit;")
-            elif dbType=='oracle':
-                # 如果是oracle 数据库 使用 SqLoader 入库
-                # createOraclCtl()
-                pass
+            result = 1
+            while result:
+                result = not insert_date(conn, curs,tableName,dbType,StringIO(output1))
 
     except Exception as e:
         print(str(e))

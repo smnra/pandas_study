@@ -186,27 +186,30 @@ def parseMreToCsvMP():
 
 
 def csvInDb():
-    try:
-        # 初始化数据库连接
-        conn, curs = dbConnect.connDb(dbConf.usedDbType)
+    # 初始化数据库连接
+    conn, curs = dbConnect.connDb(dbConf.usedDbType)
 
-        # 获取csv文件列表
-        csvFileList = getFileList(dbConf.csvPath, r'.+\.csv')
-        for csvFile in csvFileList:
-            tableName, fileExtName = os.path.splitext(os.path.split(csvFile)[-1])
-            tableName = tableName.lower()
+    # 获取csv文件列表
+    csvFileList = getFileList(dbConf.csvPath, r'.+\.csv')
+    for csvFile in csvFileList:
+        tableName, fileExtName = os.path.splitext(os.path.split(csvFile)[-1])
+        tableName = tableName.lower()
+
+        try:
+            if not conn:
+                conn, curs = dbConnect.connDb(dbConf.usedDbType)
 
             # 检测表是否存在.
-            isExistTable = dbConnect.isTableExist(conn, curs, tableName, dbConf.usedDbType)
+            # isExistTable = dbConnect.isTableExist(conn, curs, tableName, dbConf.usedDbType)
             # if not isExistTable: createTable.main()   # 不存在就执行创建表的脚本
 
-            inDb(conn, curs, csvFile, tableName, dbConf.usedDbType)
+            inDb.inDb(conn, curs, csvFile, tableName, dbConf.usedDbType)
 
-    except Exception as e:
-        print(str(e))
+        except Exception as e:
+            print(str(e))
 
-    finally:
-        if conn: dbConnect.close(conn,curs)
+
+    if conn: dbConnect.close(conn,curs)
 
 
 def csvToKpiMP():
@@ -227,17 +230,17 @@ if __name__ == '__main__':
     # FTP下载MR文件
     # ftpMrFileMP()
 
-    # 解压缩MR压缩包
-    unzipMrFileMP()
-
-    # MRO XML文件解析为csv文件
-    parseMroToCsvMP()
-
-    # MRS XML文件解析为csv文件
-    parseMrsToCsvMP()
-
-    # MRE XML文件解析为csv文件
-    parseMreToCsvMP()
+    # # 解压缩MR压缩包
+    # unzipMrFileMP()
+    #
+    # # MRO XML文件解析为csv文件
+    # parseMroToCsvMP()
+    #
+    # # MRS XML文件解析为csv文件
+    # parseMrsToCsvMP()
+    #
+    # # MRE XML文件解析为csv文件
+    # parseMreToCsvMP()
 
     # csv文件入库
     csvInDb()
