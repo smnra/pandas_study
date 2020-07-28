@@ -17,7 +17,7 @@ import os
 
 # 前一天的日期 '20200616'
 
-dateList = ['20200626','20200627']
+dateList = ['20200727','20200728']
 
 
 # 本地目录 和远程目录
@@ -38,12 +38,12 @@ mrServer = {
     'MR7': {'host': '10.100.162.117','user': 'richuser', 'password': 'mr@20invenT'},
     'MR8': {'host': '10.100.162.119','user': 'richuser', 'password': 'mr@20invenT'},
     'MR9': {'host': '10.100.162.120','user': 'richuser', 'password': 'mr@20invenT'},
-    'MR10':{'host': '10.100.162.131','user': 'richuser', 'password': 'mr@20invenT'},
-    'MR11':{'host': '10.100.162.133','user': 'richuser', 'password': 'mr@20invenT'},
-    'MR12':{'host': '10.100.162.135','user': 'richuser', 'password': 'mr@20invenT'},
-    'MR13':{'host': '10.100.162.137','user': 'richuser', 'password': 'mr@20invenT'}
+    # 'MR10':{'host': '10.100.162.131','user': 'richuser', 'password': 'mr@20invenT'},
+    # 'MR11':{'host': '10.100.162.133','user': 'richuser', 'password': 'mr@20invenT'},
+    # 'MR12':{'host': '10.100.162.135','user': 'richuser', 'password': 'mr@20invenT'},
+    # 'MR13':{'host': '10.100.162.137','user': 'richuser', 'password': 'mr@20invenT'}
 }
 
 
 # 要下载数据的基站列表
-enbList = ['36288','36288','36288', ]
+enbList = ['774050', ]

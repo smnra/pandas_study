@@ -24,6 +24,7 @@ except ModuleNotFoundError :
 
 
 
+
 def initFtpConn(mrServer):
     # 此函数初始化FTP连接 返回一个ftp 的conn对象
     # mrServer是ftp的字典 格式: {'host': '10.100.162.111','user': 'richuser', 'password': 'mr@20invenT'}
@@ -39,9 +40,16 @@ def initFtpConn(mrServer):
 def getEnbList(conn,mrDirPath):
     # 获取FTP上的 enbid 列表
     pathList = []
+    enbList = []
     # 获取MR数据目录的基站列表
     conn.dir(mrDirPath, pathList.append)
-    enbList = [f.split(None, 8)[-1] for f in pathList if f.startswith('d')]
+    # enbList = [f.split(None, 8)[-1] for f in pathList if f.startswith('d') and f.split(None, 8)[-1] in ftpConf.enbList ]
+
+    for f in pathList:
+        enbid = f.split(None, 8)[-1]
+        if f.startswith('d') and enbid in ftpConf.enbList :
+            enbList.append(enbid)
+
     return list(enbList)
 
 

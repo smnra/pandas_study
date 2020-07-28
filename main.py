@@ -228,19 +228,19 @@ def kpiToGeomMP():
 
 if __name__ == '__main__':
     # FTP下载MR文件
-    # ftpMrFileMP()
+    ftpMrFileMP()
 
-    # # 解压缩MR压缩包
-    # unzipMrFileMP()
-    #
-    # # MRO XML文件解析为csv文件
-    # parseMroToCsvMP()
-    #
-    # # MRS XML文件解析为csv文件
-    # parseMrsToCsvMP()
-    #
-    # # MRE XML文件解析为csv文件
-    # parseMreToCsvMP()
+    # 解压缩MR压缩包
+    unzipMrFileMP()
+
+    # MRO XML文件解析为csv文件
+    parseMroToCsvMP()
+
+    # MRS XML文件解析为csv文件
+    parseMrsToCsvMP()
+
+    # MRE XML文件解析为csv文件
+    parseMreToCsvMP()
 
     # csv文件入库
     csvInDb()

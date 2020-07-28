@@ -67,15 +67,15 @@ def createTable(titleList, curs,dbType):
 
         if dbType.lower()=='postgres':
             createTableStr = "create table if not exists " + title['mr'] + \
-                         "_15MI (enb_id varchar(32), startTime varchar(32), endTime varchar(32), reportTime varchar(32), period integer, eci varchar(32), " + \
+                         "_15MI (enb_id text, startTime text, endTime text, reportTime text, period integer, eci text, " + \
                          " integer, ".join(title['title']) + \
                          " integer );"
 
         elif dbType.lower() == 'oracle':
             createTableStr = "create table if not exists " + title['mr'] + \
-                             "_15MI (enb_id varchar2(32), startTime varchar2(32), endTime varchar2(32), reportTime varchar2(32), period NUMBER, eci varchar2(32), " + \
-                             " NUMBER, ".join(title['title']) + \
-                             " NUMBER );"
+                             "_15MI (enb_id varchar2(32), startTime varchar2(32), endTime varchar2(32), reportTime varchar2(32), period varchar2(32), eci varchar2(32), " + \
+                             " varchar2(32), ".join(title['title']) + \
+                             " varchar2(32) );"
 
         # 执行建表语句
         try:
